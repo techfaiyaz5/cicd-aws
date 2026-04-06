@@ -33,16 +33,19 @@ node {
     }
 
     stage('Deploy with PM2'){
-        echo 'Deploying to EC2 in Background using PM2'
+    steps {
         sh """
             cd ${appDir}
             
-            # 4. PM2 restart with --update-env taaki naya code load ho jaye
-            # Agar process nahi chal raha toh start karega, warna restart karega
-            pm2 restart next-app --update-env || pm2 start npm --name "next-app" -- start
+            # 1. Purana process kill karna (Port 3000 khali karne ke liye)
+            sudo fuser -k 3000/tcp || true
             
-            # Settings save karna taaki reboot par chalu rahe
-            pm2 save
+            # 2. PM2 ko sudo ke saath chalana taaki global list mein dikhe
+            # Agar 'next-app' chal raha hai toh restart, nahi toh start
+            sudo pm2 restart next-app --update-env || sudo pm2 start npm --name "next-app" -- start
+            
+            # 3. Save karna taaki hamesha chalta rahe
+            sudo pm2 save
         """
     }
 }
