@@ -1,5 +1,5 @@
 node {
-    def appDir = '/var/www/nextjs-app'
+    def appDir = '/home/ubuntu/nestjs-app' // Ubuntu home directory use karna safe hai
 
     stage('Clean Workspace'){
         echo 'Cleaning Jenkins Workspace'
@@ -12,36 +12,30 @@ node {
     }
 
     stage('Install & Build'){
-        echo 'Installing dependencies and building Next.js app'
+        echo 'Installing dependencies and building NestJS app'
         sh """
-            sudo mkdir -p ${appDir}
-            sudo chown -R jenkins:jenkins ${appDir}
+            mkdir -p ${appDir}
             
-            # Purani build delete karna zaroori hai
-            rm -rf ${appDir}/.next
-            
-            # Code copy karna
+            # Code copy karna (rsync is good)
             rsync -av --delete --exclude='.git' --exclude='node_modules' ./ ${appDir}
             
             cd ${appDir}
             npm install
-            npm run build
+            npm run build  # Ye 'dist' folder banayega
         """
     }
 
     stage('Deploy with PM2'){
-        echo 'Deploying to EC2 in Background using PM2'
+        echo 'Deploying to EC2 using PM2'
         sh """
             cd ${appDir}
             
-            # Port 3000 khali karna
-            sudo fuser -k 3000/tcp || true
+            # PM2 check karega agar app chal raha hai toh restart, nahi toh fresh start
+            # NestJS ke liye 'dist/main.js' hi main file hoti hai
+            pm2 delete nestjs-app || true
+            pm2 start dist/main.js --name "nestjs-app" --update-env
             
-            # PM2 ko sudo ke saath restart karna
-            sudo pm2 restart next-app --update-env || sudo pm2 start npm --name "next-app" -- start
-            
-            # Save karna taaki reboot par chalu rahe
-            sudo pm2 save
+            pm2 save
         """
     }
 }
