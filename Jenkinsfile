@@ -1,5 +1,5 @@
 node {
-    // Ab hum Jenkins ke apne workspace mein kaam karenge taaki permission ka panga na ho
+    // WORKSPACE ko quotes mein rakha hai taaki space wala issue solve ho jaye
     def appDir = "${WORKSPACE}" 
 
     stage('Clean Workspace'){
@@ -15,18 +15,19 @@ node {
     stage('Install & Build'){
         echo 'Installing dependencies and building NestJS app'
         sh """
-            cd ${appDir}
+            # Quotes use kiye hain taaki space handle ho sake
+            cd "${appDir}"
             npm install
-            npm run build  # Ye 'dist' folder banayega
+            npm run build
         """
     }
 
     stage('Deploy with PM2'){
         echo 'Deploying to EC2 using PM2'
         sh """
-            cd ${appDir}
+            cd "${appDir}"
             
-            # PM2 ko batana ki purana process hatao aur naya 'dist/main.js' se chalu karo
+            # PM2 process management
             pm2 delete nestjs-app || true
             pm2 start dist/main.js --name "nestjs-app"
             
