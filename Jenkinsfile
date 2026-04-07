@@ -1,6 +1,9 @@
 node {
     def appDir = "${WORKSPACE}" 
 
+    // Isse Jenkins ko pata chalta hai ki GitHub se signal lena hai
+    properties([pipelineTriggers([githubPush()])])
+
     stage('Clean Workspace'){
         deleteDir()
     }
@@ -10,7 +13,6 @@ node {
     }
 
     stage('Install & Build'){
-        echo 'Building NestJS App...'
         sh """
             npm install
             npm run build
@@ -18,14 +20,10 @@ node {
     }
 
     stage('Deploy with PM2'){
-        echo 'Deploying to EC2...'
         sh """
-            # Sabse pehle purana process hatao (Space handling ke saath)
+            # Quotes ke saath path handle kiya hai
             pm2 delete "nestjs-app" || true
-            
-            # Direct build file ko start karo bina CD kiye
             pm2 start "${appDir}/dist/main.js" --name "nestjs-app"
-            
             pm2 save
         """
     }
