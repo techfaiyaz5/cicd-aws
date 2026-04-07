@@ -1,9 +1,6 @@
 node {
     def appDir = "${WORKSPACE}" 
 
-    // Isse Jenkins ko pata chalta hai ki GitHub se signal lena hai
-    properties([pipelineTriggers([githubPush()])])
-
     stage('Clean Workspace'){
         deleteDir()
     }
@@ -20,10 +17,15 @@ node {
     }
 
     stage('Deploy with PM2'){
+        echo 'Deploying to EC2...'
         sh """
-            # Quotes ke saath path handle kiya hai
+            # Purana process delete karo
             pm2 delete "nestjs-app" || true
-            pm2 start "${appDir}/dist/main.js" --name "nestjs-app"
+            
+            # SABSE ZAROORI: Single quotes (' ') ke andar Double quotes (" ") 
+            # Isse PM2 ko poora rasta ek sath milega
+            pm2 start '${appDir}/dist/main.js' --name "nestjs-app"
+            
             pm2 save
         """
     }
