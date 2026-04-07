@@ -21,7 +21,7 @@ export default function Home() {
             .
           </li>
           <li className="tracking-[-.01em]">
-            Welcome To Jenkins with aws.
+            Welcome To Jenkins with aws without docker.
           </li>
         </ol>
 
